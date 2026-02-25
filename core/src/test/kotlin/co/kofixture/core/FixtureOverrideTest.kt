@@ -13,6 +13,7 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.constant
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.map
+import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
@@ -47,6 +48,13 @@ val testRegistry = fixtures {
         }
     }
     registerOf(::Project)
+}
+
+fun FixtureRegistry.adminUser(): User =
+    sample<User>(override(User::name, "Admin"))
+
+fun FixtureRegistry.adminUserArb(): Arb<User> = arb<User> {
+    override(User::name, "Admin")
 }
 
 class FixtureRegistryTest : FreeSpec({
@@ -212,6 +220,18 @@ class FixtureRegistryTest : FreeSpec({
             strings.forEach { it.length shouldBeInRange 1..3 }
             ints shouldHaveSize 2
             ints.forEach { it shouldBeInRange 100..999 }
+        }
+    }
+
+    "extension functions as fixture builders" - {
+        "sample<User> admin" {
+            val admin = testRegistry.adminUser()
+            admin.name shouldBe "Admin"
+        }
+
+        "arb<User> admin" {
+            val admin = testRegistry.adminUserArb().next()
+            admin.name shouldBe "Admin"
         }
     }
 })
