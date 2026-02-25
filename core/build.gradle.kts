@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    id("buildsrc.convention.kotlin-jvm")
 }
 
 group = "co.kofixture"
@@ -18,10 +18,3 @@ dependencies {
     testImplementation(libs.kotestAssertions)
 }
 
-kotlin {
-    jvmToolchain(25)
-}
-
-tasks.test {
-    useJUnitPlatform()
-}

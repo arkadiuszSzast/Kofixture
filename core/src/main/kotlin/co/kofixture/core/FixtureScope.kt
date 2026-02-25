@@ -20,7 +20,9 @@ import kotlin.reflect.typeOf
  * }
  * ```
  */
-class FixtureScope<T> @PublishedApi internal constructor(
+class FixtureScope<T>
+@PublishedApi
+internal constructor(
     @PublishedApi internal val registry: FixtureRegistry,
     @PublishedApi internal val active: ActiveOverrides,
 ) {

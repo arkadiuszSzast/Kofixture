@@ -19,8 +19,9 @@ import kotlin.reflect.typeOf
  * }
  * ```
  */
-class SampleScope @PublishedApi internal constructor() {
-
+class SampleScope
+@PublishedApi
+internal constructor() {
     @PublishedApi
     internal val overrides = mutableListOf<FixtureOverride>()
 
@@ -52,24 +53,20 @@ class SampleScope @PublishedApi internal constructor() {
     }
 
     /** Overrides a specific [property] on [Owner] with the given [Arb]. */
-    inline fun <reified Owner : Any, reified Prop> override(
-        property: KProperty1<Owner, Prop>,
-        arb: Arb<Prop>,
-    ) {
-        overrides += FixtureOverride.Named(
-            key = NamedOverrideKey(typeOf<Owner>(), property.name),
-            arb = arb,
-        )
+    inline fun <reified Owner : Any, reified Prop> override(property: KProperty1<Owner, Prop>, arb: Arb<Prop>) {
+        overrides +=
+            FixtureOverride.Named(
+                key = NamedOverrideKey(typeOf<Owner>(), property.name),
+                arb = arb,
+            )
     }
 
     /** Overrides a specific [property] on [Owner] with a constant [value]. */
-    inline fun <reified Owner : Any, reified Prop> override(
-        property: KProperty1<Owner, Prop>,
-        value: Prop,
-    ) {
-        overrides += FixtureOverride.Named(
-            key = NamedOverrideKey(typeOf<Owner>(), property.name),
-            arb = Arb.constant(value),
-        )
+    inline fun <reified Owner : Any, reified Prop> override(property: KProperty1<Owner, Prop>, value: Prop) {
+        overrides +=
+            FixtureOverride.Named(
+                key = NamedOverrideKey(typeOf<Owner>(), property.name),
+                arb = Arb.constant(value),
+            )
     }
 }

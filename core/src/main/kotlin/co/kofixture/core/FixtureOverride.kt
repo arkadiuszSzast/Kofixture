@@ -11,10 +11,7 @@ import kotlin.reflect.typeOf
  * Allows distinguishing `Person::name` from `Person::surname` even though both are `String`.
  */
 @PublishedApi
-internal data class NamedOverrideKey(
-    val ownerType: KType,
-    val paramName: String,
-)
+internal data class NamedOverrideKey(val ownerType: KType, val paramName: String)
 
 /**
  * Represents a single override applied during sampling.
@@ -24,23 +21,25 @@ internal data class NamedOverrideKey(
  * - [Named] — replaces one specific field on a specific owner type
  */
 sealed interface FixtureOverride {
-
     /** Replaces all fields whose type matches [type] with values from [arb]. */
-    class TypeBased @PublishedApi internal constructor(
+    class TypeBased
+    @PublishedApi
+    internal constructor(
         @PublishedApi internal val type: KType,
         @PublishedApi internal val arb: Arb<*>,
     ) : FixtureOverride
 
     /** Replaces the field identified by [key] with values from [arb]. */
-    class Named @PublishedApi internal constructor(
+    class Named
+    @PublishedApi
+    internal constructor(
         @PublishedApi internal val key: NamedOverrideKey,
         @PublishedApi internal val arb: Arb<*>,
     ) : FixtureOverride
 }
 
 /** Overrides all fields of type [T] with the given [Arb]. */
-inline fun <reified T> override(arb: Arb<T>): FixtureOverride =
-    FixtureOverride.TypeBased(type = typeOf<T>(), arb = arb)
+inline fun <reified T> override(arb: Arb<T>): FixtureOverride = FixtureOverride.TypeBased(type = typeOf<T>(), arb = arb)
 
 /** Overrides all fields of type [T] with a constant [value]. */
 inline fun <reified T> override(value: T): FixtureOverride =

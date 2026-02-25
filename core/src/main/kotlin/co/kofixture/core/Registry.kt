@@ -36,17 +36,17 @@ internal data class ActiveOverrides(
         }
 
         @PublishedApi
-        internal fun from(scope: SampleScope): ActiveOverrides =
-            from(scope.overrides.toTypedArray())
-                .copy(collectionConfig = scope.collectionConfig)
+        internal fun from(scope: SampleScope): ActiveOverrides = from(scope.overrides.toTypedArray())
+            .copy(collectionConfig = scope.collectionConfig)
     }
 }
 
-class FixtureRegistry @PublishedApi internal constructor(
+class FixtureRegistry
+@PublishedApi
+internal constructor(
     @PublishedApi internal val factories: Map<KType, (FixtureRegistry, ActiveOverrides) -> Arb<*>>,
     val collectionConfig: CollectionConfig = CollectionConfig(),
 ) {
-
     /**
      * Generates a single value, optionally overriding specific types or fields.
      *
@@ -68,10 +68,8 @@ class FixtureRegistry @PublishedApi internal constructor(
         sampleInternal(typeOf<T>(), overrides, RandomSource.default())
 
     /** Generates a single value with a specific [RandomSource] for deterministic results. */
-    inline fun <reified T> sample(
-        randomSource: RandomSource,
-        vararg overrides: FixtureOverride,
-    ): T = sampleInternal(typeOf<T>(), overrides, randomSource)
+    inline fun <reified T> sample(randomSource: RandomSource, vararg overrides: FixtureOverride): T =
+        sampleInternal(typeOf<T>(), overrides, randomSource)
 
     /**
      * Generates a single value with overrides defined in a [SampleScope] block.
@@ -125,8 +123,7 @@ class FixtureRegistry @PublishedApi internal constructor(
      * }
      * ```
      */
-    inline fun <reified T> arb(vararg overrides: FixtureOverride): Arb<T> =
-        arbInternal(typeOf<T>(), overrides)
+    inline fun <reified T> arb(vararg overrides: FixtureOverride): Arb<T> = arbInternal(typeOf<T>(), overrides)
 
     /**
      * Returns an [Arb]<T> with overrides defined in a [SampleScope] block.
@@ -146,10 +143,8 @@ class FixtureRegistry @PublishedApi internal constructor(
         resolve(typeOf<T>(), ActiveOverrides.from(SampleScope().apply(block)))
 
     @PublishedApi
-    internal fun <T> arbInternal(
-        type: KType,
-        overrides: Array<out FixtureOverride>,
-    ): Arb<T> = resolve(type, ActiveOverrides.from(overrides))
+    internal fun <T> arbInternal(type: KType, overrides: Array<out FixtureOverride>): Arb<T> =
+        resolve(type, ActiveOverrides.from(overrides))
 
     /**
      * Recursive type resolver.
@@ -185,27 +180,24 @@ class FixtureRegistry @PublishedApi internal constructor(
         val classifier = type.classifier as? KClass<*> ?: return null
         val config = active.collectionConfig ?: collectionConfig
         return when (classifier) {
-            List::class, Collection::class, Iterable::class ->
-                Arb.list(resolve<Any?>(type.typeArg(0), active), config.listSize) as Arb<T>
-
-            Set::class ->
-                Arb.set(resolve<Any?>(type.typeArg(0), active), config.setSize) as Arb<T>
-
-            Map::class ->
-                Arb.map(
-                    resolve<Any?>(type.typeArg(0), active),
-                    resolve<Any?>(type.typeArg(1), active),
-                    minSize = config.mapSize.first,
-                    maxSize = config.mapSize.last,
-                ) as Arb<T>
+            List::class, Collection::class, Iterable::class -> Arb.list(
+                resolve<Any?>(type.typeArg(0), active),
+                config.listSize,
+            ) as Arb<T>
+            Set::class -> Arb.set(resolve<Any?>(type.typeArg(0), active), config.setSize) as Arb<T>
+            Map::class -> Arb.map(
+                resolve<Any?>(type.typeArg(0), active),
+                resolve<Any?>(type.typeArg(1), active),
+                minSize = config.mapSize.first,
+                maxSize = config.mapSize.last,
+            ) as Arb<T>
 
             else -> null
         }
     }
 
-    private fun KType.typeArg(index: Int): KType =
-        arguments.getOrNull(index)?.type
-            ?: error("Star projection is not supported in auto-derivation. Type: $this")
+    private fun KType.typeArg(index: Int): KType = arguments.getOrNull(index)?.type
+        ?: error("Star projection is not supported in auto-derivation. Type: $this")
 
     private fun missingFixtureError(type: KType): Nothing = error(
         buildString {
@@ -213,13 +205,11 @@ class FixtureRegistry @PublishedApi internal constructor(
             appendLine("Registered types:")
             factories.keys.forEach { appendLine("  - $it") }
             appendLine("Hint: for generic types, make sure all element types are registered.")
-        }
+        },
     )
 
     fun registeredTypes(): Set<KType> = factories.keys
 }
-
-// ── FixtureModule ─────────────────────────────────────────────────────────────
 
 /**
  * A reusable, composable unit of fixture registrations.
@@ -255,7 +245,6 @@ class FixtureModule @PublishedApi internal constructor(
 fun fixtureModule(block: FixtureRegistryBuilder.() -> Unit): FixtureModule = FixtureModule(block)
 
 class FixtureRegistryBuilder @PublishedApi internal constructor() {
-
     @PublishedApi
     internal val factories = mutableMapOf<KType, (FixtureRegistry, ActiveOverrides) -> Arb<*>>()
 
@@ -348,17 +337,18 @@ class FixtureRegistryBuilder @PublishedApi internal constructor() {
         factories[ownerType] = { reg, active ->
             // Arbs resolved OUTSIDE arbitrary{} so Kotest can see them upfront —
             // edge cases and shrinking are coordinated across the whole object.
-            val arbs: List<Arb<*>> = constructor.parameters.map { param ->
-                val namedKey = NamedOverrideKey(ownerType, param.name!!)
-                when {
-                    // 1. Named override for this specific field
-                    active.byName.containsKey(namedKey) -> active.byName[namedKey]!!
-                    // 2. Type-based override for this parameter type
-                    active.byType.containsKey(param.type) -> active.byType[param.type]!!
-                    // 3. Normal resolution — registry + auto-derivation
-                    else -> reg.resolve(param.type, active)
+            val arbs: List<Arb<*>> =
+                constructor.parameters.map { param ->
+                    val namedKey = NamedOverrideKey(ownerType, param.name!!)
+                    when {
+                        // 1. Named override for this specific field
+                        active.byName.containsKey(namedKey) -> active.byName[namedKey]!!
+                        // 2. Type-based override for this parameter type
+                        active.byType.containsKey(param.type) -> active.byType[param.type]!!
+                        // 3. Normal resolution — registry + auto-derivation
+                        else -> reg.resolve(param.type, active)
+                    }
                 }
-            }
             arbitrary {
                 @Suppress("UNCHECKED_CAST")
                 val values = arbs.map { it.bind() }.toTypedArray()
