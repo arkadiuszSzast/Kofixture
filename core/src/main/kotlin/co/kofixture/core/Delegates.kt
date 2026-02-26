@@ -8,15 +8,59 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
+/**
+ * Property delegate that creates a sample of type [T] when first accessed.
+ *
+ * It uses the [FixtureRegistry] for the current [KofixtureTest] spec, applying
+ * optional [overrides].
+ *
+ * ```kotlin
+ * class MyTest : StringSpec(), KofixtureTest {
+ *     val project by sample<Project>(Project::name override "Custom")
+ *
+ *     init {
+ *         "it works" {
+ *             project.name shouldBe "Custom"
+ *         }
+ *     }
+ * }
+ * ```
+ */
 inline fun <reified T> KofixtureTest.sample(vararg overrides: FixtureOverride): ReadOnlyProperty<Any?, T> =
     SampleDelegate(typeOf<T>(), overrides, this)
 
+/**
+ * Property delegate that creates a sample of type [T] when first accessed.
+ *
+ * It uses the [FixtureRegistry] for the current [KofixtureTest] spec, applying
+ * overrides from the given [block].
+ *
+ * ```kotlin
+ * class MyTest : StringSpec(), KofixtureTest {
+ *     val project by sample<Project> {
+ *         override(Project::name, "Custom")
+ *     }
+ * }
+ * ```
+ */
 inline fun <reified T> KofixtureTest.sample(noinline block: SampleScope.() -> Unit): ReadOnlyProperty<Any?, T> =
     SampleBlockDelegate(typeOf<T>(), block, this)
 
+/**
+ * Property delegate that provides an [Arb] of type [T].
+ *
+ * It uses the [FixtureRegistry] for the current [KofixtureTest] spec, applying
+ * optional [overrides].
+ */
 inline fun <reified T> KofixtureTest.arb(vararg overrides: FixtureOverride): ReadOnlyProperty<Any?, Arb<T>> =
     ArbDelegate(typeOf<T>(), overrides, this)
 
+/**
+ * Property delegate that provides an [Arb] of type [T].
+ *
+ * It uses the [FixtureRegistry] for the current [KofixtureTest] spec, applying
+ * overrides from the given [block].
+ */
 inline fun <reified T> KofixtureTest.arb(noinline block: SampleScope.() -> Unit): ReadOnlyProperty<Any?, Arb<T>> =
     ArbBlockDelegate(typeOf<T>(), block, this)
 
@@ -27,6 +71,9 @@ private sealed interface Cache<out T> {
     value class Filled<T>(val value: T) : Cache<T>
 }
 
+/**
+ * Caching delegate for generating a sample value of type [T] with [overrides].
+ */
 class SampleDelegate<T> @PublishedApi internal constructor(
     private val type: KType,
     private val overrides: Array<out FixtureOverride>,
@@ -42,6 +89,9 @@ class SampleDelegate<T> @PublishedApi internal constructor(
     }
 }
 
+/**
+ * Caching delegate for generating a sample value of type [T] with a configuration [block].
+ */
 class SampleBlockDelegate<T> @PublishedApi internal constructor(
     private val type: KType,
     private val block: SampleScope.() -> Unit,
@@ -57,6 +107,9 @@ class SampleBlockDelegate<T> @PublishedApi internal constructor(
     }
 }
 
+/**
+ * Delegate that provides an [Arb] for type [T] with [overrides].
+ */
 class ArbDelegate<T> @PublishedApi internal constructor(
     private val type: KType,
     private val overrides: Array<out FixtureOverride>,
@@ -66,6 +119,9 @@ class ArbDelegate<T> @PublishedApi internal constructor(
         KofixtureContext.registryFor(spec).arbInternal(type, overrides)
 }
 
+/**
+ * Delegate that provides an [Arb] for type [T] with a configuration [block].
+ */
 class ArbBlockDelegate<T> @PublishedApi internal constructor(
     private val type: KType,
     private val block: SampleScope.() -> Unit,

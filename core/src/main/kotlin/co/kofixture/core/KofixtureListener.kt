@@ -4,6 +4,12 @@ import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
 
+/**
+ * Kotest listener that manages the lifecycle of [FixtureRegistry] for [KofixtureTest] specs.
+ *
+ * It must be registered in Kotest (e.g., in `ProjectConfig`) to enable
+ * automatic registry creation and cleanup.
+ */
 object KofixtureListener : BeforeSpecListener, AfterSpecListener {
 
     override suspend fun beforeSpec(spec: Spec) {

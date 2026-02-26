@@ -3,8 +3,17 @@ package co.kofixture.core
 import java.util.Collections
 import java.util.WeakHashMap
 
+/**
+ * Holds the global state and registry management for Kofixture.
+ *
+ * It manages [FixtureRegistry] instances for each [KofixtureTest] spec,
+ * ensuring they are properly initialized before tests and released after.
+ */
 object KofixtureContext {
 
+    /**
+     * Default modules to be used if a [KofixtureTest] doesn't specify its own.
+     */
     var defaultModules: List<FixtureModule> = emptyList()
 
     @PublishedApi
