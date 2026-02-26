@@ -1,5 +1,10 @@
 package co.kofixture.core
 
+import co.kofixture.core.utils.Email
+import co.kofixture.core.utils.Project
+import co.kofixture.core.utils.ProjectName
+import co.kofixture.core.utils.Tag
+import co.kofixture.core.utils.User
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
@@ -17,16 +22,6 @@ import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-
-data class ProjectName(val value: String)
-
-data class Email(val value: String)
-
-data class User(val name: String, val surname: String, val email: Email)
-
-data class Tag(val label: String)
-
-data class Project(val name: ProjectName, val owner: User, val memberCount: Int, val tags: List<Tag>)
 
 val testRegistry =
     fixtures {
